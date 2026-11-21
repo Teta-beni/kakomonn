@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>過去問ノート</title>
+  <meta name="description" content="入試の過去問を解いた記録と点数の推移を、スマホで手軽に管理するアプリ。データはこの端末の中だけに保存されます。">
+  <meta name="theme-color" content="#F3F5F8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="過去問ノート">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1 class="title">過去問ノート</h1>
+    <nav class="students" aria-label="生徒の切り替え">
+      <div class="student-chips" id="studentChips" role="tablist"></div>
+      <button class="chip chip-add" id="addStudentBtn" type="button" aria-label="生徒を追加">＋ 生徒</button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- 記録 -->
+    <section class="view" id="view-records" aria-labelledby="tab-records">
+      <div class="notice" id="backupNotice" hidden>
+        <p id="backupNoticeText"></p>
+        <button type="button" class="btn-text" data-go="settings">バックアップする</button>
+      </div>
+      <div class="notice" id="homeNotice" hidden>
+        <p>ホーム画面に追加しておくと、データが消えにくくなります。共有ボタンから「ホーム画面に追加」を選んでください。</p>
+        <button type="button" class="btn-text" id="homeNoticeClose">閉じる</button>
+      </div>
+      <div id="recordList" class="record-list"></div>
+    </section>
+
+    <!-- グラフ -->
+    <section class="view" id="view-chart" aria-labelledby="tab-chart" hidden>
+      <div class="filters">
+        <label class="field">
+          <span>志望校</span>
+          <select id="chartSchool"></select>
+        </label>
+        <label class="field">
+          <span>科目</span>
+          <select id="chartSubject"></select>
+        </label>
+      </div>
+      <div id="chartArea"></div>
+    </section>
+
+    <!-- 設定 -->
+    <section class="view" id="view-settings" aria-labelledby="tab-settings" hidden>
+      <h2 class="section-title">生徒</h2>
+      <ul class="student-admin" id="studentAdmin"></ul>
+
+      <h2 class="section-title">バックアップ</h2>
+      <p class="help" id="lastBackupText"></p>
+      <div class="stack">
+        <button type="button" class="btn btn-primary" id="exportBtn">バックアップを書き出す</button>
+        <label class="btn btn-secondary file-btn">
+          バックアップを読み込む
+          <input type="file" id="importInput" accept="application/json,.json">
+        </label>
+        <button type="button" class="btn btn-secondary" id="csvBtn">CSVで書き出す</button>
+      </div>
+      <p class="help">生徒から受け取ったバックアップを読み込むと、その生徒の記録がこの端末に追加されます。今ある記録は消えません。CSVはExcelやスプレッドシートで開けます。</p>
+
+      <h2 class="section-title">データの保存について</h2>
+      <ul class="help-list">
+        <li>記録はこの端末のこのブラウザの中だけに保存されます。インターネット上には送られません。</li>
+        <li>ブラウザの履歴やWebサイトのデータを消すと、記録も消えます。ときどきバックアップを書き出してください。</li>
+        <li>iPhoneのSafariは、しばらく開かないとデータを消すことがあります。ホーム画面に追加して使うと消えにくくなります。</li>
+        <li>生徒の名前は、イニシャルやニックネームにしておくと安心です。</li>
+      </ul>
+      <p class="help version">過去問ノート v1.0</p>
+    </section>
+  </main>
+
+  <button class="fab" id="addRecordBtn" type="button">＋ 記録する</button>
+
+  <nav class="tabbar" role="tablist" aria-label="画面の切り替え">
+    <button role="tab" id="tab-records" data-tab="records" aria-selected="true" aria-controls="view-records">記録</button>
+    <button role="tab" id="tab-chart" data-tab="chart" aria-selected="false" aria-controls="view-chart">グラフ</button>
+    <button role="tab" id="tab-settings" data-tab="settings" aria-selected="false" aria-controls="view-settings">設定</button>
+  </nav>
+
+  <!-- 記録の入力シート -->
+  <dialog id="recordSheet" class="sheet" aria-labelledby="recordSheetTitle">
+    <form id="recordForm" method="dialog" novalidate>
+      <div class="sheet-head">
+        <h2 id="recordSheetTitle">記録する</h2>
+        <button type="button" class="btn-text" data-close>閉じる</button>
+      </div>
+      <label class="field">
+        <span>志望校（大学・学部）</span>
+        <input type="text" name="school" list="schoolList" required placeholder="例：明治大学 文学部" autocomplete="off">
+        <datalist id="schoolList"></datalist>
+      </label>
+      <div class="row">
+        <label class="field">
+          <span>年度</span>
+          <select name="year" required></select>
+        </label>
+        <label class="field">
+          <span>科目</span>
+          <input type="text" name="subject" list="subjectList" required placeholder="例：英語" autocomplete="off">
+          <datalist id="subjectList"></datalist>
+        </label>
+      </div>
+      <label class="field">
+        <span>解いた日</span>
+        <input type="date" name="date" required>
+      </label>
+      <div class="row">
+        <label class="field">
+          <span>得点</span>
+          <input type="number" name="score" inputmode="decimal" min="0" step="any" required>
+        </label>
+        <label class="field">
+          <span>満点</span>
+          <input type="number" name="max" inputmode="decimal" min="1" step="any" required>
+        </label>
+      </div>
+      <label class="field">
+        <span>合格最低点（わかれば）</span>
+        <input type="number" name="pass" inputmode="decimal" min="0" step="any" placeholder="空欄でもOK">
+        <small>その年度の合格最低点を、上の満点と同じ基準で入れてください。</small>
+      </label>
+      <p class="form-error" id="formError" role="alert"></p>
+      <div class="sheet-actions">
+        <button type="submit" class="btn btn-primary" id="saveRecordBtn">記録する</button>
+        <button type="button" class="btn btn-danger" id="deleteRecordBtn" hidden>この記録を削除する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 生徒の追加・名前変更 -->
+  <dialog id="studentSheet" class="sheet" aria-labelledby="studentSheetTitle">
+    <form id="studentForm" method="dialog" novalidate>
+      <div class="sheet-head">
+        <h2 id="studentSheetTitle">生徒を追加する</h2>
+        <button type="button" class="btn-text" data-close>閉じる</button>
+      </div>
+      <label class="field">
+        <span>名前（イニシャルやニックネームでOK）</span>
+        <input type="text" name="name" required maxlength="20" autocomplete="off" placeholder="例：Aさん">
+      </label>
+      <p class="form-error" id="studentError" role="alert"></p>
+      <div class="sheet-actions">
+        <button type="submit" class="btn btn-primary" id="saveStudentBtn">追加する</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

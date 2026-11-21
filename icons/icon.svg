@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#F3F5F8"/>
+  <!-- 罫線 -->
+  <g stroke="#C9D8EA" stroke-width="6">
+    <line x1="64" y1="168" x2="448" y2="168"/>
+    <line x1="64" y1="256" x2="448" y2="256"/>
+    <line x1="64" y1="344" x2="448" y2="344"/>
+  </g>
+  <!-- 右肩上がりの推移 -->
+  <polyline points="132,352 206,300 278,318 372,196" fill="none" stroke="#24365C" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="372" cy="196" r="22" fill="#24365C"/>
+  <!-- 赤ペンの丸付け -->
+  <path d="M 148 118 C 250 70, 404 82, 440 196 C 470 300, 400 420, 250 424 C 120 428, 58 350, 70 250 C 80 170, 150 118, 240 108"
+        fill="none" stroke="#D3222A" stroke-width="20" stroke-linecap="round"/>
+</svg>
